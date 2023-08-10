@@ -3,7 +3,7 @@ from sqlalchemy import Enum
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
-
+import requests, os
 import pymysql
 
 pymysql.install_as_MySQLdb()
@@ -122,5 +122,31 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
+# Initialize Output Directory
+OUTPUT_DIR = "output_books"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
+# Go grab all the books
+books = session.query(Book).limit(200).all()
 
+for book in books:
+    if book.state == 'initialized':
+        """
+            Check if book has volumes, if not this is probably
+            a text only book. Let's download it and save it
+        """
+        if book.import_data.get('format') == 'text':
+            print("lets download this book")
+            download_url = book.import_data.get('web_url')
+            if download_url:
+                response = requests.get(download_url)
+
+                if response.status_code == 200:
+                    # TODO Clean the title
+                    file_path = os.path.join(OUTPUT_DIR, book.title)
+                    with open(f"{file_path}.txt", "wb") as file:
+                        file.write(response.content)
+                    print("File downloaded successfully.")
+                else:
+                    print("Failed to download the file.")
+                print(f"Download attempt from: {book.import_data.get('web_url')}")
