@@ -1,27 +1,19 @@
 import os, requests
 from bs4 import BeautifulSoup
 
-from models import User, Book, BookVolume, BookCategory, BookChapter, create_new_session
-from helpers import clean_filename
+from models import Book, BookVolume, BookChapter, create_new_session
+from helpers import register_dirs, save_file
 
 
 session = create_new_session()
-
-# Initialize Output Directories
-OUTPUT_DIR = "outputs"
-dir_paths = [OUTPUT_DIR, f"{OUTPUT_DIR}/txt", f"{OUTPUT_DIR}/html"]
-
-for dir_path in dir_paths:
-    os.makedirs(dir_path, exist_ok=True)
+register_dirs()
 
 
 # Go grab all the books
-
 books = session.query(Book).all()
 unprocessed_books = []
 
 for book in books:
-    book_title = clean_filename(book.title)
     volumes = session.query(BookVolume).filter_by(book_id=book.id).order_by(BookVolume.sequence).all()
     volume_ids = [volume.id for volume in volumes]
 
@@ -37,40 +29,35 @@ for book in books:
                 book_content_html += f"{chapter.title}\n\n{chapter.body}\n\n"
 
         # Save html concatenated book
-        file_path_html = os.path.join(OUTPUT_DIR, 'html', book_title)
-        with open(f"{file_path_html}.txt", "a") as file:
-            file.write(book_content_html)
+        save_file(book.title, book_content_html, 'html')
 
         # Save plain txt concatenated book
-        file_path_txt = os.path.join(OUTPUT_DIR, 'txt', book_title)
         soup = BeautifulSoup(book_content_html, 'html.parser')
         book_content_txt = soup.get_text()
-        with open(f"{file_path_txt}.txt", "a") as file:
-            file.write(book_content_txt)
+        save_file(book.title, book_content_txt, 'txt')
+
+
     elif book.state == 'initialized' and book.import_data.get('web_url'):
-        """ If a book has no volumes, it can be one of two things:
+        """ If a book has no volumes, it can be one of a few things:
             1 ==> It is a link to download a .txt file
             2 ==> It is a book with no volumes and listed on a single page
         """
         download_url = book.import_data.get('web_url')
         if book.import_data.get('format') == 'text':
-            """ Option 1 """
+            """ Option 1: Plain text"""
             if download_url:
                 response = requests.get(download_url)
-
                 if response.status_code == 200:
-                    file_path = os.path.join(OUTPUT_DIR, 'txt', book_title)
-                    with open(f"{file_path}.txt", "wb") as file:
-                        file.write(response.content)
+                    save_file(book.title, response.text, 'txt')
                     print(f"[{book.id}] ==> File downloaded --> [SUCCESS]")
                 else:
                     unprocessed_books.append(book.id)
                     print(f"[{book.id}] ==> File downloaded --> [FAILED]")
-                print(f"Download attempt ==> {book.import_data.get('web_url')}")
+                print(f"Attempted ==> {book.import_data.get('web_url')}")
             else:
                 unprocessed_books.append(book.id)
         else:
-            """ Option 2 """
+            """ Option 2|3 """
             if download_url:
                 response = requests.get(download_url)
 
@@ -78,15 +65,12 @@ for book in books:
                     soup = BeautifulSoup(response.content, 'html.parser')
 
                     # Save html concatenated book
-                    file_path_html = os.path.join(OUTPUT_DIR, 'html', book_title)
-                    with open(f"{file_path_html}.txt", "a") as file:
-                        file.write(str(soup))
+                    book_content_html = str(soup)
+                    save_file(book.title, book_content_html, 'html')
 
                     # Save plain txt concatenated book
-                    file_path_txt = os.path.join(OUTPUT_DIR, 'txt', book_title)
                     book_content_txt = soup.get_text()
-                    with open(f"{file_path_txt}.txt", "a") as file:
-                        file.write(book_content_txt)
+                    save_file(book.title, book_content_txt, 'txt')
 
                     print(f"[{book.id}] ==> Page downloaded --> [SUCCESS]")
                 else:
@@ -94,11 +78,11 @@ for book in books:
                     print(f"[{book.id}] ==> Page downloaded --> [FAILED]")
             else:
                 unprocessed_books.append(book.id)
-            unprocessed_books.append(book.id)
 
 
 
-print("\n\n=========================================\n")
-print(f"Total books ==> {len(books)}")
-print(f"Unprocessed books ==> {len(unprocessed_books)}")
-print(unprocessed_books)
+# Print out the results
+print(f"\n\n=========================================\n"
+      f"Total books ==> {len(books)}\n"
+      f"Unprocessed books ==> {len(unprocessed_books)}\n"
+      f"{unprocessed_books}")
