@@ -5,6 +5,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 import requests, os
 import pymysql
+from bs4 import BeautifulSoup
 
 pymysql.install_as_MySQLdb()
 
@@ -172,8 +173,14 @@ for book in books:
                     book_content_html += f"{chapter.title}\n\n{chapter.body}\n\n"
 
         # Save html concatenated book
-        # file_path = os.path.join(OUTPUT_DIR, 'txt', book.title)
-        file_path = os.path.join(OUTPUT_DIR, 'html', book.title)
+        file_path_html = os.path.join(OUTPUT_DIR, 'html', book.title)
 
-        with open(f"{file_path}.txt", "a") as file:
+        with open(f"{file_path_html}.txt", "a") as file:
             file.write(book_content_html)
+
+        # Save txt concatenated book
+        file_path_txt = os.path.join(OUTPUT_DIR, 'txt', book.title)
+        soup = BeautifulSoup(book_content_html, 'html.parser')
+        book_content_txt = soup.get_text()
+        with open(f"{file_path_txt}.txt", "a") as file:
+            file.write(book_content_txt)
