@@ -7,6 +7,9 @@ import requests, os
 import pymysql
 from bs4 import BeautifulSoup
 
+from helpers import clean_filename
+
+
 pymysql.install_as_MySQLdb()
 
 Base = declarative_base()
@@ -132,10 +135,11 @@ for dir_path in dir_paths:
 
 
 # Go grab all the books
-books = session.query(Book).limit(8).all()
+books = session.query(Book).all()
 
 for book in books:
     book_content_html = ""
+    book_title = clean_filename(book.title)
 
     if book.state == 'initialized':
         """
@@ -143,43 +147,42 @@ for book in books:
             a text only book. Let's download it and save it
         """
         if book.import_data.get('format') == 'text':
-            print("lets download this book")
             download_url = book.import_data.get('web_url')
             if download_url:
                 response = requests.get(download_url)
 
                 if response.status_code == 200:
                     # TODO Clean the title
-                    file_path = os.path.join(OUTPUT_DIR, 'txt', book.title)
+                    file_path = os.path.join(OUTPUT_DIR, 'txt', book_title)
                     with open(f"{file_path}.txt", "wb") as file:
                         file.write(response.content)
-                    print("File downloaded successfully.")
+                    print(f"[{book.id}] ==> File downloaded --> [SUCCESS]")
                 else:
-                    print("Failed to download the file.")
-                print(f"Download attempt from: {book.import_data.get('web_url')}")
+                    print(f"[{book.id}] ==> File downloaded --> [FAILED]")
+                print(f"Download attempt ==> {book.import_data.get('web_url')}")
 
     else:
         volumes = session.query(BookVolume).filter_by(book_id=book.id).order_by(BookVolume.sequence).all()
         volume_ids = [volume.id for volume in volumes]
-        print(f"({len(volume_ids)}) --> Volumes to tackle: {volume_ids}")
+        print(f"[{book.id}] ==> ({len(volume_ids)}) Volumes to tackle --> {volume_ids}")
 
         for volume in volumes:
             if len(volumes) > 0:
-                print(f"Volume id: {volume.id}")
-
                 chapters = session.query(BookChapter).filter_by(volume_id=volume.id).order_by(BookChapter.sequence).all()
+                chapter_ids = [chapter.id for chapter in chapters]
+                print(f"[{book.id}] ==> ({len(chapter_ids)}) Chapters to process")
 
                 for chapter in chapters:
                     book_content_html += f"{chapter.title}\n\n{chapter.body}\n\n"
 
         # Save html concatenated book
-        file_path_html = os.path.join(OUTPUT_DIR, 'html', book.title)
+        file_path_html = os.path.join(OUTPUT_DIR, 'html', book_title)
 
         with open(f"{file_path_html}.txt", "a") as file:
             file.write(book_content_html)
 
-        # Save txt concatenated book
-        file_path_txt = os.path.join(OUTPUT_DIR, 'txt', book.title)
+        # Save plain txt concatenated book
+        file_path_txt = os.path.join(OUTPUT_DIR, 'txt', book_title)
         soup = BeautifulSoup(book_content_html, 'html.parser')
         book_content_txt = soup.get_text()
         with open(f"{file_path_txt}.txt", "a") as file:
