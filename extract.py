@@ -122,14 +122,20 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 
-# Initialize Output Directory
-OUTPUT_DIR = "output_books"
-os.makedirs(OUTPUT_DIR, exist_ok=True)
+# Initialize Output Directories
+OUTPUT_DIR = "outputs"
+dir_paths = [OUTPUT_DIR, f"{OUTPUT_DIR}/txt", f"{OUTPUT_DIR}/html"]
+
+for dir_path in dir_paths:
+    os.makedirs(dir_path, exist_ok=True)
+
 
 # Go grab all the books
-books = session.query(Book).limit(200).all()
+books = session.query(Book).limit(8).all()
 
 for book in books:
+    book_content_html = ""
+
     if book.state == 'initialized':
         """
             Check if book has volumes, if not this is probably
@@ -143,10 +149,31 @@ for book in books:
 
                 if response.status_code == 200:
                     # TODO Clean the title
-                    file_path = os.path.join(OUTPUT_DIR, book.title)
+                    file_path = os.path.join(OUTPUT_DIR, 'txt', book.title)
                     with open(f"{file_path}.txt", "wb") as file:
                         file.write(response.content)
                     print("File downloaded successfully.")
                 else:
                     print("Failed to download the file.")
                 print(f"Download attempt from: {book.import_data.get('web_url')}")
+
+    else:
+        volumes = session.query(BookVolume).filter_by(book_id=book.id).order_by(BookVolume.sequence).all()
+        volume_ids = [volume.id for volume in volumes]
+        print(f"({len(volume_ids)}) --> Volumes to tackle: {volume_ids}")
+
+        for volume in volumes:
+            if len(volumes) > 0:
+                print(f"Volume id: {volume.id}")
+
+                chapters = session.query(BookChapter).filter_by(volume_id=volume.id).order_by(BookChapter.sequence).all()
+
+                for chapter in chapters:
+                    book_content_html += f"{chapter.title}\n\n{chapter.body}\n\n"
+
+        # Save html concatenated book
+        # file_path = os.path.join(OUTPUT_DIR, 'txt', book.title)
+        file_path = os.path.join(OUTPUT_DIR, 'html', book.title)
+
+        with open(f"{file_path}.txt", "a") as file:
+            file.write(book_content_html)
