@@ -129,7 +129,7 @@ BookVolume.book = relationship('Book', back_populates='volumes')
 
 
 def create_new_session():
-    engine = create_engine('mysql://root:@localhost/xdev')
+    engine = create_engine('mysql://xero:xeropoint@localhost/xeropoint')
 
     Base.metadata.create_all(engine)
 

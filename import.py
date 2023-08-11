@@ -5,9 +5,9 @@ import mysql.connector
 # Connect to your MySQL database
 db_connection = mysql.connector.connect(
     host="localhost",
-    user="root",
-    password="",
-    database="xdev"
+    user="xero",
+    password="xeropoint",
+    database="xeropoint"
 )
 
 # Create a cursor
