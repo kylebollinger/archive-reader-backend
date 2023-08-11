@@ -12,6 +12,7 @@ register_dirs()
 # Go grab all the books
 books = session.query(Book).all()
 unprocessed_books = []
+rescrape_books = []
 
 for book in books:
     volumes = session.query(BookVolume).filter_by(book_id=book.id).order_by(BookVolume.sequence).all()
@@ -40,11 +41,12 @@ for book in books:
     elif book.state == 'initialized' and book.import_data.get('web_url'):
         """ If a book has no volumes, it can be one of a few things:
             1 ==> It is a link to download a .txt file
-            2 ==> It is a book with no volumes and listed on a single page
+            2 ==> It is a book with no volumes and rendered on a single page
+            3 ==> There was an error in scraping the first time
         """
         download_url = book.import_data.get('web_url')
         if book.import_data.get('format') == 'text':
-            """ Option 1: Plain text"""
+            """ Option 1 Processer"""
             if download_url:
                 response = requests.get(download_url)
                 if response.status_code == 200:
@@ -57,25 +59,43 @@ for book in books:
             else:
                 unprocessed_books.append(book.id)
         else:
-            """ Option 2|3 """
+            """ Option 2|3 Processer """
             if download_url:
                 response = requests.get(download_url)
 
                 if response.status_code == 200:
                     soup = BeautifulSoup(response.content, 'html.parser')
 
-                    # Save html concatenated book
-                    book_content_html = str(soup)
-                    save_file(book.title, book_content_html, 'html')
+                    # Delete all center tags (Header and Footer)
+                    for center_tag in soup.find_all('center'): center_tag.decompose()
 
-                    # Save plain txt concatenated book
-                    book_content_txt = soup.get_text()
-                    save_file(book.title, book_content_txt, 'txt')
+                    if len(soup.find_all('a')) > 0:
+                        # Look for a structure that resembles table of contents
+                        run_scraper = False
+                        for link_tag in soup.find_all('a'):
+                            if link_tag.find_next_sibling('a') or link_tag.find_previous_sibling('a'):
+                                run_scraper = True
+                        if run_scraper:
+                            """ Option #3:
+                            An error occured while trying to scrape the first time
+                            """
+                            rescrape_books.append(book.id)
 
-                    print(f"[{book.id}] ==> Page downloaded --> [SUCCESS]")
+                    else:
+                        """ Option 2:
+                            Single book rendered on a single page
+                        """
+                        # Save html concatenated book
+                        book_content_html = str(soup)
+                        save_file(book.title, book_content_html, 'html')
+
+                        # Save plain txt concatenated book
+                        book_content_txt = soup.get_text()
+                        save_file(book.title, book_content_txt, 'txt')
+                        print(f"[{book.id}] ==> Page downloaded --> [SUCCESS]")
                 else:
                     unprocessed_books.append(book.id)
-                    print(f"[{book.id}] ==> Page downloaded --> [FAILED]")
+                    print(f"[{book.id}] ==> Page unreachable --> [FAILED]")
             else:
                 unprocessed_books.append(book.id)
 
@@ -85,4 +105,6 @@ for book in books:
 print(f"\n\n=========================================\n"
       f"Total books ==> {len(books)}\n"
       f"Unprocessed books ==> {len(unprocessed_books)}\n"
-      f"{unprocessed_books}")
+      f"{unprocessed_books}\n"
+      f"Books to Rescrape ==> {len(rescrape_books)}\n"
+      f"{rescrape_books}\n")
