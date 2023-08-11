@@ -61,6 +61,9 @@ class Book(Base):
     user = relationship("User", back_populates="books")
     volumes = relationship("Volume", back_populates="book")
 
+    def __repr__(self):
+        return f"Book(id={self.id}, title='{self.title}')"
+
 
 class BookVolume(Base):
     __tablename__ = 'book_volumes'
@@ -78,6 +81,10 @@ class BookVolume(Base):
     book = relationship('Book', back_populates='volumes')
     chapters = relationship('BookChapter', back_populates='volume')
     book = relationship("Book", back_populates="volumes")
+
+
+    def __repr__(self):
+        return f"BookVolume(id={self.id}, title='{self.title}', book_id={self.book_id}, sequence={self.sequence})"
 
 
 class BookCategory(Base):
@@ -114,6 +121,8 @@ class BookChapter(Base):
     # Define the relationship to Volume
     volume = relationship('BookVolume', back_populates='chapters')
 
+    def __repr__(self):
+        return f"BookChapter(id={self.id}, book_id={self.book_id}, volume_id={self.volume_id} title='{self.title}', sequence={self.sequence}, book_sequence={self.book_sequence})"
 
 Book.volumes = relationship("BookVolume", back_populates="book")
 BookVolume.book = relationship('Book', back_populates='volumes')
