@@ -4,7 +4,7 @@ import requests, csv, re, string, secrets, time, random
 import sys, os
 
 from models import Book, BookVolume, BookChapter, create_new_session
-from scraper.utils import getHTMLdocument, generate_slug_id
+from scraper.utils import getHTMLdocument, generate_slug_id, root_url
 
 
 session = create_new_session()
@@ -33,6 +33,29 @@ def create_base_volume(book):
     session.commit()
 
     return base_volume
+
+
+def fetch_chapter_body_data(chapter_page_url):
+    time.sleep(1.5)
+    html_doc, encoding = getHTMLdocument(chapter_page_url)
+    soup = BeautifulSoup(html_doc, "html.parser")
+    body_tag = soup.find('body')
+
+    print(chapter_page_url, encoding)
+
+    if soup.find(attrs={"name": re.compile("page")}):
+        first_p = soup.find(attrs={"name": re.compile("page")})
+        header_trash_tags = first_p.parent.find_previous_siblings()
+        for tag in header_trash_tags:
+            tag.decompose()
+
+        if soup.select('hr + center'):
+            center_tag = soup.select_one('hr + center')
+            if len(center_tag.find_next_siblings()) == 0:
+                center_tag.find_previous_sibling('hr').decompose()
+                center_tag.decompose()
+
+    return body_tag
 
 
 def scrape_volumes(book):
@@ -65,9 +88,11 @@ def scrape_volumes(book):
 
             if link_tag.find_next_sibling('a') or link_tag.find_previous_sibling('a'):
                 """ This should be link in a list of chapters """
-                print(link_tag.get('href'))
+                chapter_url = f"{book_url.rsplit('/', 1)[0]}/{link_tag.get('href')}"
+                chapter_body = fetch_chapter_body_data(chapter_url)
 
                 # Create a new BookChapter instance
+
 
 
 
