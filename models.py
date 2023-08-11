@@ -122,7 +122,7 @@ class BookChapter(Base):
     volume = relationship('BookVolume', back_populates='chapters')
 
     def __repr__(self):
-        return f"BookChapter(id={self.id}, book_id={self.book_id}, volume_id={self.volume_id} title='{self.title}', sequence={self.sequence}, book_sequence={self.book_sequence})"
+        return f"BookChapter(id={self.id}, volume_id={self.volume_id} title='{self.title}', sequence={self.sequence}, book_sequence={self.book_sequence})"
 
 Book.volumes = relationship("BookVolume", back_populates="book")
 BookVolume.book = relationship('Book', back_populates='volumes')
