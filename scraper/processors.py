@@ -3,6 +3,10 @@ from urllib.parse import urljoin
 
 from models import Book, BookVolume, BookChapter, create_new_session
 
+from scraper.utils import getHTMLdocument, generate_slug_id
+
+
+
 def clean_imported_body(Chapter):
     session = create_new_session()
     body = Chapter.body
@@ -56,15 +60,27 @@ def update_imgsrc_body(Chapter):
     session.close()
 
 
-
-
-def bulk_process_books(book_ids):
+def create_base_volume(book):
+    # Create a new BookVolume instance
     session = create_new_session()
-    books = session.query(Book).filter(Book.id.in_(book_ids)).all()
+    base_volume = session.query(BookVolume).filter_by(book_id=book.id).all()
 
-    for book in books:
-        print(book.import_data.get('web_url'))
-        reprocess_single_book()
-
+    if not base_volume:
+        base_volume = BookVolume(
+            title="Contents",
+            book_id=book.id,
+            sequence=1,
+            import_data={
+                "vol_id": generate_slug_id(),
+                "book_url": book.import_data.get('web_url'),
+                "vol_title": "Contents",
+                "vol_sequence": 1,
+                "vol_url": book.import_data.get('web_url')
+            }
+        )
+        session.add(base_volume)
+        session.commit()
 
     session.close()
+    return base_volume
+

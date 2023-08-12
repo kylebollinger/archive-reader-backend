@@ -58,36 +58,3 @@ def remove_html_tags(text):
   clean = re.compile('<.*?>')
   return re.sub(clean, '', text)
 
-
-def process_body_tag(body_tag):
-  body_1=body_2=body_3=body_4=body_5=body_6=body_7=body_8=body_9=body_10=body_11=body_12=body_13=body_14=body_15 = ''
-  body_1 = body_tag.encode(formatter="html5")
-
-  # Split at 30000 Characters for CSV cell limit
-  if len(body_1) > 30000:
-    chunks = [body_1[i:i+30000] for i in range(0, len(body_1), 30000)]
-    body_1 = chunks[0]
-    body_2 = chunks[1]
-    try:
-      body_3 = chunks[2]
-      body_4 = chunks[3]
-      body_5 = chunks[4]
-      body_6 = chunks[5]
-      body_7 = chunks[6]
-      body_8 = chunks[7]
-      body_9 = chunks[8]
-      body_10 = chunks[9]
-      body_11 = chunks[10]
-      body_12 = chunks[11]
-      body_13 = chunks[12]
-      body_14 = chunks[13]
-      body_15 = chunks[14]
-    except IndexError:
-      print("[OK] Less than max characters")
-
-  tags = [body_1, body_2, body_3, body_4, body_5, body_6, body_7, body_8, body_9, body_10, body_11, body_12, body_13, body_14, body_15]
-  for idx, tag in enumerate(tags):
-    if len(tag) > 0:
-      tags[idx] = remove_byte_encoding(str(tag))
-
-  return tags[0], tags[1], tags[2], tags[3], tags[4], tags[5], tags[6], tags[7], tags[8], tags[9], tags[10], tags[11], tags[12], tags[13], tags[14]
