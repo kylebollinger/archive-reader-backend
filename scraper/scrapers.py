@@ -10,7 +10,6 @@ def scrape_chapter(chapter_page_url):
     time.sleep(1.5)
     html_doc, encoding = getHTMLdocument(chapter_page_url)
     soup = BeautifulSoup(html_doc, "html.parser")
-
     print(chapter_page_url, encoding)
 
     """ Knock out Footer """
@@ -48,7 +47,6 @@ def scrape_chapter(chapter_page_url):
                 center_tag.decompose()
 
     body_tag = soup.find('body')
-    print(f"\n======> Body:\n{body_tag}")
     return body_tag
 
 

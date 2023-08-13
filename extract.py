@@ -9,6 +9,7 @@ session = create_new_session()
 register_dirs()
 
 
+
 # Go grab all the books
 books = session.query(Book).all()
 unprocessed_books = []
