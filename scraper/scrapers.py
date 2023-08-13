@@ -93,27 +93,28 @@ def scrape_book(book_id):
                 chapter_url = f"{book_url.rsplit('/', 1)[0]}/{link_tag.get('href')}"
                 chapter_body = scrape_chapter(chapter_url)
 
-                encoded_body = chapter_body.encode(formatter="html5")
-                chapter_body = remove_byte_encoding(str(encoded_body))
+                if chapter_body:
+                    encoded_body = chapter_body.encode(formatter="html5")
+                    chapter_body = remove_byte_encoding(str(encoded_body))
 
-                # Create a new BookChapter instance
-                new_chapter = BookChapter(
-                    title=chapter_title,
-                    volume_id=base_volume.id,
-                    sequence=chap_sequence,
-                    book_sequence=chap_sequence,
-                    body=chapter_body,
-                    import_data={
-                        "chap_url": chapter_url,
-                        "chap_title": chapter_title,
-                        "chap_sequence": chap_sequence,
-                        "chap_body_size": len(chapter_body)
-                    }
-                )
-                session.add(new_chapter)
-                session.commit()
+                    # Create a new BookChapter instance
+                    new_chapter = BookChapter(
+                        title=chapter_title,
+                        volume_id=base_volume.id,
+                        sequence=chap_sequence,
+                        book_sequence=chap_sequence,
+                        body=chapter_body,
+                        import_data={
+                            "chap_url": chapter_url,
+                            "chap_title": chapter_title,
+                            "chap_sequence": chap_sequence,
+                            "chap_body_size": len(chapter_body)
+                        }
+                    )
+                    session.add(new_chapter)
+                    session.commit()
 
-                post_process_body(new_chapter.id)
+                    post_process_body(new_chapter.id)
 
     session.close()
 
