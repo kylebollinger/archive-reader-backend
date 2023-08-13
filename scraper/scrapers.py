@@ -81,7 +81,7 @@ def scrape_book(book_id):
                 chapter_titles ==> link_tag.text
                 chapter_urls   ==> link_tag.get('href')
             """
-            if "http" in link_tag.get('href'):
+            if link_tag.get('href') and "http" in link_tag.get('href'):
                 """ Not internal link, cant be a chapter """
                 continue
 
@@ -123,7 +123,7 @@ def bulk_scrape_books(book_ids):
     books = session.query(Book).filter(Book.id.in_(book_ids)).all()
 
     for book in books:
-        scrape_book(book)
+        scrape_book(book.id)
 
     session.close()
 
