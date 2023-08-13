@@ -1,7 +1,3 @@
-#####
-##### Helpers
-#####
-
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import requests, csv, re, string, secrets

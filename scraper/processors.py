@@ -5,7 +5,6 @@ from core.models import Book, BookVolume, BookChapter, create_new_session
 from scraper.utils import getHTMLdocument, generate_slug_id
 
 
-
 def post_process_body(chapter_id):
     session = create_new_session()
     chapter = session.query(BookChapter).filter_by(id=chapter_id).first()

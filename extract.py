@@ -2,7 +2,7 @@ import os, requests
 from bs4 import BeautifulSoup
 
 from core.models import Book, BookVolume, BookChapter, create_new_session
-from helpers import register_dirs, save_file
+from core.helpers import register_dirs, save_file
 
 
 session = create_new_session()

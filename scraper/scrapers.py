@@ -1,10 +1,10 @@
 import os, time, re
 from bs4 import BeautifulSoup
-from models import Book, BookVolume, BookChapter, create_new_session
+from core.models import Book, BookVolume, BookChapter, create_new_session
 
 from scraper.utils import getHTMLdocument, generate_slug_id, remove_byte_encoding
 from scraper.processors import create_base_volume, post_process_body
-from helpers import clean_filename
+from core.helpers import clean_filename
 
 def scrape_chapter(chapter_page_url):
     time.sleep(1.5)
