@@ -59,9 +59,9 @@ def update_imgsrc_body(Chapter):
 def create_base_volume(book):
     # Create a new BookVolume instance
     session = create_new_session()
-    base_volume = session.query(BookVolume).filter_by(book_id=book.id).all()
+    base_volume = session.query(BookVolume).filter_by(book_id=book.id).first()
 
-    if not base_volume:
+    if base_volume is None:
         base_volume = BookVolume(
             title="Contents",
             book_id=book.id,
@@ -76,6 +76,7 @@ def create_base_volume(book):
         )
         session.add(base_volume)
         session.commit()
+        base_volume = session.query(BookVolume).filter_by(book_id=book.id).first()
 
     session.close()
     return base_volume
