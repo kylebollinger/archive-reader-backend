@@ -2,23 +2,25 @@ import re
 from urllib.parse import urljoin
 
 from models import Book, BookVolume, BookChapter, create_new_session
-
 from scraper.utils import getHTMLdocument, generate_slug_id
 
 
 
-def clean_imported_body(Chapter):
+def post_process_body(chapter_id):
     session = create_new_session()
+    chapter = session.query(BookChapter).filter_by(id=chapter_id).first()
+    clean_imported_body(chapter)
+    session.commit()
+    session.close()
+
+def clean_imported_body(Chapter):
     body = Chapter.body
     body = re.sub(r"\\n", "", body)
     body = re.sub(r"\\'", "'", body)
     Chapter.body = body
-    session.commit()
-    session.close()
 
 
 def update_img_href_body(Chapter):
-    session = create_new_session()
     body = Chapter.body
     tag_pattern = r'<a[^>]* href="([^"]*)"[^>]*>'
     tags = re.findall(tag_pattern, body)
@@ -34,12 +36,9 @@ def update_img_href_body(Chapter):
                 body = body.replace(tag, url_path)
 
         Chapter.body = body
-        session.commit()
-    session.close()
 
 
 def update_imgsrc_body(Chapter):
-    session = create_new_session()
     body = Chapter.body
     tag_pattern = r'<img[^>]* src="([^"]*)"[^>]*>'
     tags = re.findall(tag_pattern, body)
@@ -55,9 +54,6 @@ def update_imgsrc_body(Chapter):
             body = body.replace(tag, url_path)
 
         Chapter.body = body
-        session.commit()
-
-    session.close()
 
 
 def create_base_volume(book):
