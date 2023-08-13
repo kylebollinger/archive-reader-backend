@@ -1,7 +1,7 @@
 import re
 from urllib.parse import urljoin
 
-from models import Book, BookVolume, BookChapter, create_new_session
+from core.models import Book, BookVolume, BookChapter, create_new_session
 from scraper.utils import getHTMLdocument, generate_slug_id
 
 
@@ -12,6 +12,7 @@ def post_process_body(chapter_id):
     clean_imported_body(chapter)
     session.commit()
     session.close()
+
 
 def clean_imported_body(Chapter):
     body = Chapter.body

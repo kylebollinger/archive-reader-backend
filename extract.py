@@ -1,7 +1,7 @@
 import os, requests
 from bs4 import BeautifulSoup
 
-from models import Book, BookVolume, BookChapter, create_new_session
+from core.models import Book, BookVolume, BookChapter, create_new_session
 from helpers import register_dirs, save_file
 
 
@@ -79,6 +79,7 @@ for book in books:
                             """ Option #3:
                             An error occured while trying to scrape the first time
                             """
+                            # NOTE This could kick off a scraper function instead of collecting the ids and running it as a bulk operation.
                             rescrape_books.append(book.id)
 
                     else:
