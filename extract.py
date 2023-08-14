@@ -2,16 +2,15 @@ import os, requests
 from bs4 import BeautifulSoup
 
 from core.models import Book, BookVolume, BookChapter, create_new_session
-from core.helpers import register_dirs, save_file
+from core.helpers import register_dirs, save_file, OUTPUT_DIR
 
 
 session = create_new_session()
 register_dirs()
 
-
-
 # Go grab all the books
-books = session.query(Book).all()
+# books = session.query(Book).all()
+books = session.query(Book).limit(10).all()
 unprocessed_books = []
 rescrape_books = []
 
@@ -22,13 +21,26 @@ for book in books:
     if len(volumes) > 0:
         """ Book was originally scraped correctly and has volumes """
         book_content_html = ""
+        book_dir = f"{OUTPUT_DIR}/chapters/[{book.id}] {book.title}"
+        dirs = [book_dir, f"{book_dir}/html", f"{book_dir}/txt"]
+        for dir in dirs:
+            os.makedirs(dir, exist_ok=True)
+
         for volume in volumes:
             chapters = session.query(BookChapter).filter_by(volume_id=volume.id).order_by(BookChapter.sequence).all()
             chapter_ids = [chapter.id for chapter in chapters]
             print(f"[{book.id}] ==> ({len(chapter_ids)}) Chapters to process")
 
             for chapter in chapters:
-                book_content_html += f"{chapter.title}\n\n{chapter.body}\n\n"
+                book_content_html += f"\n\n{chapter.body}\n\n"
+                file_name = f"[{chapter.book_sequence}] {chapter.title}"
+                # Save html chapter
+                save_file(file_name, chapter.body, 'html', book_dir)
+
+                # Save plain text chapter
+                soup = BeautifulSoup(chapter.body, 'html.parser')
+                book_content_txt = soup.get_text()
+                save_file(file_name, book_content_txt, 'txt', book_dir)
 
         # Save html concatenated book
         save_file(book.title, book_content_html, 'html')
@@ -37,7 +49,6 @@ for book in books:
         soup = BeautifulSoup(book_content_html, 'html.parser')
         book_content_txt = soup.get_text()
         save_file(book.title, book_content_txt, 'txt')
-
 
     elif book.state == 'initialized' and book.import_data.get('web_url'):
         """ If a book has no volumes, it can be one of a few things:
