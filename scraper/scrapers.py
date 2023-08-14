@@ -123,8 +123,12 @@ def bulk_scrape_books(book_ids):
     session = create_new_session()
     books = session.query(Book).filter(Book.id.in_(book_ids)).all()
 
+    total_count = len(books)
+    processed_count = 0
     for book in books:
         scrape_book(book.id)
+        processed_count += 1
+        print(f"Processed Book [{book.id}] =====> {processed_count} of {total_count}")
 
     session.close()
 
