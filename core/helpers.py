@@ -15,12 +15,12 @@ def clean_filename(filename):
     return decoded_filename
 
 def register_dirs():
-    dir_paths = [OUTPUT_DIR, f"{OUTPUT_DIR}/txt", f"{OUTPUT_DIR}/html"]
+    dir_paths = [OUTPUT_DIR, f"{OUTPUT_DIR}/txt", f"{OUTPUT_DIR}/html", f"{OUTPUT_DIR}/chapters"]
 
     for dir_path in dir_paths:
         os.makedirs(dir_path, exist_ok=True)
 
-def save_file(book_title, content, encoding='txt'):
-    file_path = f"{OUTPUT_DIR}/{encoding}/{clean_filename(book_title)}"
+def save_file(file_name, file_content, encoding='txt', dir=OUTPUT_DIR):
+    file_path = f"{dir}/{encoding}/{clean_filename(file_name)}"
     with open(f"{file_path}.txt", "a") as file:
-        file.write(content)
+        file.write(file_content)
