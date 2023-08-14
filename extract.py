@@ -2,11 +2,11 @@ import os, requests
 from bs4 import BeautifulSoup
 
 from core.models import Book, BookVolume, BookChapter, create_new_session
-from core.helpers import register_dirs, save_file, OUTPUT_DIR
+from core.helpers import register_base_dirs, save_file, OUTPUT_DIR
 
 
 session = create_new_session()
-register_dirs()
+register_base_dirs()
 
 # Go grab all the books
 # books = session.query(Book).all()
