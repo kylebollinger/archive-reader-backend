@@ -2,15 +2,20 @@ import os, requests
 from bs4 import BeautifulSoup
 
 from db.models import Book, BookVolume, BookChapter, create_new_session
-from core.helpers import register_base_dirs, save_file, OUTPUT_DIR
+from core.helpers import (
+    OUTPUT_DIR,
+    register_base_dirs,
+    save_file, 
+    scrub_filename
+)
 
 
 session = create_new_session()
 register_base_dirs()
 
 # Go grab all the books
-# books = session.query(Book).all()
-books = session.query(Book).limit(10).all()
+books = session.query(Book).all()
+books = session.query(Book).filter(Book.id > 1027).all()
 unprocessed_books = []
 rescrape_books = []
 
@@ -21,7 +26,8 @@ for book in books:
     if len(volumes) > 0:
         """ Book was originally scraped correctly and has volumes """
         book_content_html = ""
-        book_dir = f"{OUTPUT_DIR}/chapters/[{book.id}] {book.title}"
+        book_file_name = scrub_filename(book.title)
+        book_dir = f"{OUTPUT_DIR}/chapters/[{book.id}] {book_file_name}"
         dirs = [book_dir, f"{book_dir}/html", f"{book_dir}/txt"]
         for dir in dirs:
             os.makedirs(dir, exist_ok=True)
@@ -44,7 +50,6 @@ for book in books:
 
         # Save html concatenated book
         save_file(book.title, book_content_html, 'html')
-
         # Save plain txt concatenated book
         soup = BeautifulSoup(book_content_html, 'html.parser')
         book_content_txt = soup.get_text()
