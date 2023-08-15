@@ -1,7 +1,7 @@
 import re
 from urllib.parse import urljoin
 
-from core.models import Book, BookVolume, BookChapter, create_new_session
+from db.models import Book, BookVolume, BookChapter, create_new_session
 from scraper.utils import getHTMLdocument, generate_slug_id
 
 

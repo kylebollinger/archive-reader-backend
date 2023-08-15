@@ -1,7 +1,7 @@
 import os, requests
 from bs4 import BeautifulSoup
 
-from core.models import Book, BookVolume, BookChapter, create_new_session
+from db.models import Book, BookVolume, BookChapter, create_new_session
 from core.helpers import register_base_dirs, save_file, OUTPUT_DIR
 
 

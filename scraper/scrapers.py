@@ -1,6 +1,6 @@
 import os, time, re
 from bs4 import BeautifulSoup
-from core.models import Book, BookVolume, BookChapter, create_new_session
+from db.models import Book, BookVolume, BookChapter, create_new_session
 
 from scraper.utils import getHTMLdocument, generate_slug_id, remove_byte_encoding
 from scraper.processors import create_base_volume, post_process_body
