@@ -72,3 +72,20 @@ def bulk_update_book_sequences():
             update_book_sequence(book.id)
 
     session.close()
+
+
+def clean_trailing_periods_from_title(Class):
+    session = create_new_session()
+    objects = session.query(Class).all()
+
+    if objects is not None:
+        for obj in objects:
+            obj.title = obj.title.rstrip(".")
+            session.add(obj)
+            session.commit()
+            print(f"[SUCCESS] ===> [{obj.id}] {Class.__name__} Cleaned")
+    else:
+        print(f"[ERROR] ===> [{obj.id}] Something went wrong")
+
+    session.close()
+
