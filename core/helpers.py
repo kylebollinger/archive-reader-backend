@@ -28,14 +28,23 @@ def register_base_dirs():
 
 
 def save_file(file_name, file_content, encoding='txt', dir=OUTPUT_DIR):
+    # Clean the filename
     filename = clean_filename(file_name)
-    filename = scrub_filename(filename)
-    file_path = f"{dir}/{encoding}/{filename}"
-    with open(f"{file_path}.txt", "a") as file:
+    scrub_name = scrub_filename(filename)
+
+    # Construct the directory path and ensure it exists
+    directory_path = os.path.join(dir, encoding)
+    os.makedirs(directory_path, exist_ok=True)
+
+    # Construct the full file path
+    file_path = os.path.join(directory_path, f"{scrub_name}.txt")
+
+    # Write the content to the file
+    with open(file_path, "a") as file:
         file.write(file_content)
 
 
-def scrub_filename(filename, max_length=64):
+def scrub_filename(filename, max_length=48):
     """
     Clean and shorten a filename to make it safe for output.
 
