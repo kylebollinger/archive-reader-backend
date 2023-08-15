@@ -3,51 +3,14 @@ from bs4 import BeautifulSoup
 from db.models import Book, BookVolume, BookChapter, create_new_session
 
 from scraper.utils import getHTMLdocument, generate_slug_id, remove_byte_encoding
-from scraper.processors import create_base_volume, post_process_body
+from scraper.processors import create_base_volume, post_process_body, clean_center_tags
+
 from core.helpers import clean_filename
 
 def scrape_chapter(chapter_page_url):
     time.sleep(1.5)
     html_doc, encoding = getHTMLdocument(chapter_page_url)
-    soup = BeautifulSoup(html_doc, "html.parser")
-    print(chapter_page_url, encoding)
-
-    """ Knock out Footer """
-    if soup.select('hr + center'):
-        center_tag = soup.select_one('hr + center')
-        if len(center_tag.find_next_siblings()) == 0:
-            center_tag.find_previous_sibling('hr').decompose()
-            center_tag.decompose()
-
-    """ Search and destroy fallback header and footer """
-    for center_tag in soup.find_all('center'):
-        center_tag.decompose()
-
-    """ Look for sub headers """
-    if soup.find_all('p', align="CENTER"):
-        for centered_p in soup.find_all('p', align="CENTER"):
-            if centered_p.find_previous_siblings('hr') or centered_p.find_next_siblings('hr'):
-                if centered_p.find_previous_sibling('hr'):
-                    centered_p.find_previous_sibling('hr').decompose()
-                if centered_p.find_next_siblings('hr'):
-                    centered_p.find_next_sibling('hr').decompose()
-                centered_p.decompose()
-
-
-    if soup.find(attrs={"name": re.compile("page")}):
-        first_p = soup.find(attrs={"name": re.compile("page")})
-        header_trash_tags = first_p.parent.find_previous_siblings()
-        for tag in header_trash_tags:
-            tag.decompose()
-
-        if soup.select('hr + center'):
-            center_tag = soup.select_one('hr + center')
-            if len(center_tag.find_next_siblings()) == 0:
-                center_tag.find_previous_sibling('hr').decompose()
-                center_tag.decompose()
-
-    body_tag = soup.find('body')
-    return body_tag
+    clean_center_tags(html_doc)
 
 
 def scrape_book(book_id):
