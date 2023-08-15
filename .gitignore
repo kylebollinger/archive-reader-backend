@@ -1,6 +1,7 @@
 .DS_Store
 .vscode
 __pycache__/
+__init__.py
 
 .denv/
 outputs/
