@@ -11,7 +11,7 @@ from scraper.processors import clean_center_tags
 
 
 """ Clears the chapter.body of all headers and footers """
-def eliminate_body_headers(chapter_id):
+def process_body_center_tags(chapter_id):
     session = create_new_session()
     chapter = session.query(BookChapter).filter_by(id=chapter_id).first()
 
@@ -20,15 +20,27 @@ def eliminate_body_headers(chapter_id):
         chapter.body = cleaned_body
         session.add(chapter)
         session.commit()
-        print(f"[SUCCESS] ===>{{chapter.id}} Chapter Cleaned")
+        print(f"[SUCCESS] ===> [{chapter.id}] Chapter Cleaned")
     else:
-        print(f"[ERROR] ===> Chapter with id {chapter_id} not found")
+        print(f"[ERROR] ===> [{chapter.id}] Chapter not found")
+
+    session.close()
+
+
+def bulk_process_body_center_tags():
+    session = create_new_session()
+    chapters = session.query(BookChapter).all()
+
+    if chapters is not None:
+        for chapter in chapters:
+            process_body_center_tags(chapter.id)
 
     session.close()
 
 
 """ Loop through and update book sequence for a given book """
 def update_book_sequence(book_id):
+    unprocessed = []
     session = create_new_session()
     book = session.query(Book).filter_by(id=book_id).first()
 
@@ -46,3 +58,17 @@ def update_book_sequence(book_id):
                         chapter.book_sequence = book_sequence
                         session.add(chapter)
                         session.commit()
+                    print(f"[SUCCESS] ===> [{book.id}]-[{volume.id}] Chapters Updated")
+                else:
+                    print(f"[ERROR] ===> [{volume.id}] Volume has no chapters")
+                    unprocessed.append(volume.id)
+
+def bulk_update_book_sequences():
+    session = create_new_session()
+    books = session.query(Book).all()
+
+    if books is not None:
+        for book in books:
+            update_book_sequence(book.id)
+
+    session.close()
