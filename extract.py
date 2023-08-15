@@ -5,7 +5,7 @@ from db.models import Book, BookVolume, BookChapter, create_new_session
 from core.helpers import (
     OUTPUT_DIR,
     register_base_dirs,
-    save_file, 
+    save_file,
     scrub_filename
 )
 
@@ -14,8 +14,8 @@ session = create_new_session()
 register_base_dirs()
 
 # Go grab all the books
-books = session.query(Book).all()
-books = session.query(Book).filter(Book.id > 1027).all()
+books = session.query(Book).limit(50).all()
+# books = session.query(Book).filter(Book.id > 1027).all()
 unprocessed_books = []
 rescrape_books = []
 
@@ -39,21 +39,24 @@ for book in books:
 
             for chapter in chapters:
                 book_content_html += f"\n\n{chapter.body}\n\n"
-                file_name = f"[{chapter.book_sequence}] {chapter.title}"
-                # Save html chapter
-                save_file(file_name, chapter.body, 'html', book_dir)
-
-                # Save plain text chapter
                 soup = BeautifulSoup(chapter.body, 'html.parser')
                 book_content_txt = soup.get_text()
+                file_name = f"[{chapter.book_sequence}] {chapter.title}"
+
+                # Save html & plain txt chapter
+                save_file(file_name, chapter.body, 'html', book_dir)
                 save_file(file_name, book_content_txt, 'txt', book_dir)
 
-        # Save html concatenated book
-        save_file(book.title, book_content_html, 'html')
-        # Save plain txt concatenated book
+
+        # Save full book
+        book_filename = f"[{book.id}] {book.title}"
         soup = BeautifulSoup(book_content_html, 'html.parser')
         book_content_txt = soup.get_text()
-        save_file(book.title, book_content_txt, 'txt')
+
+        # Save html & plain txt concatenated book
+        save_file(book_filename, book_content_html, 'html')
+        save_file(book_filename, book_content_txt, 'txt')
+        print(f"[{book.id}] ==> Page downloaded --> [SUCCESS]")
 
     elif book.state == 'initialized' and book.import_data.get('web_url'):
         """ If a book has no volumes, it can be one of a few things:
@@ -67,7 +70,8 @@ for book in books:
             if download_url:
                 response = requests.get(download_url)
                 if response.status_code == 200:
-                    save_file(book.title, response.text, 'txt')
+                    book_filename = f"[{book.id}] {book.title}"
+                    save_file(book_filename, response.text, 'txt')
                     print(f"[{book.id}] ==> File downloaded --> [SUCCESS]")
                 else:
                     unprocessed_books.append(book.id)
@@ -103,13 +107,12 @@ for book in books:
                         """ Option 2:
                             Single book rendered on a single page
                         """
-                        # Save html concatenated book
-                        book_content_html = str(soup)
-                        save_file(book.title, book_content_html, 'html')
-
-                        # Save plain txt concatenated book
+                        book_filename = f"[{book.id}] {book.title}"
                         book_content_txt = soup.get_text()
-                        save_file(book.title, book_content_txt, 'txt')
+
+                        # Save html & plain txt concatenated book
+                        save_file(book_filename, book_content_html, 'html')
+                        save_file(book_filename, book_content_txt, 'txt')
                         print(f"[{book.id}] ==> Page downloaded --> [SUCCESS]")
                 else:
                     unprocessed_books.append(book.id)
