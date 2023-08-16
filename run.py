@@ -1,9 +1,12 @@
 from scraper.scrapers import scrape_book, bulk_scrape_books
+from db.models import Book, BookVolume, BookChapter
 from db.cleaners import (
     process_body_center_tags,
     bulk_process_body_center_tags,
     update_book_sequence,
-    bulk_update_book_sequences
+    bulk_update_book_sequences,
+    clean_trailing_periods_from_title,
+    clip_book_chapter_titles
 )
 
 """
@@ -21,4 +24,10 @@ from db.cleaners import (
     Example 4: Update book_sequence for book chapters
     ===> [one] update_book_sequence(book_id)
     ===> [all] bulk_update_book_sequences()
+
+    Example 5: Clean trailing periods from titles in a Class
+    ===> clean_trailing_periods_from_title(BookChapter)
+
+    Example 6: Clip book chapter titles for a given book
+    ===> clip_book_chapter_titles(book_id)
 """
