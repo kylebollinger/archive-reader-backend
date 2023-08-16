@@ -89,3 +89,37 @@ def clean_trailing_periods_from_title(Class):
 
     session.close()
 
+
+def clip_chapter_title_lengths(chapter_id):
+    """ For some reason we have chapter titles that are the whole body of the chapter """
+    session = create_new_session()
+    chapter = session.query(BookChapter).filter_by(id=chapter_id).first()
+
+    if chapter is not None:
+        if len(chapter.title) > 64:
+            chapter.title = f"{chapter.title[:64]} (...)"
+            session.add(chapter)
+            session.commit()
+            print(f"[SUCCESS] ===> [{chapter.id}] Chapter Cleaned")
+    else:
+        print(f"[ERROR] ===> [{chapter.id}] Something went wrong")
+
+    session.close()
+
+
+def clip_book_chapter_titles(book_id):
+    session = create_new_session()
+    book = session.query(Book).filter_by(id=book_id).first()
+
+    if book is not None:
+        volumes = session.query(BookVolume).filter_by(book_id=book.id).order_by(BookVolume.sequence).all()
+
+        if volumes is not None:
+            for vol in volumes:
+                chapters = session.query(BookChapter).filter_by(volume_id=vol.id).order_by(BookChapter.sequence).all()
+
+                if chapters is not None:
+                    for chapter in chapters:
+                        clip_chapter_title_lengths(chapter.id)
+
+    session.close()
