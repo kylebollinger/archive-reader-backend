@@ -6,6 +6,7 @@ from datetime import datetime
 import requests, os
 import pymysql
 
+from bs4 import BeautifulSoup
 
 pymysql.install_as_MySQLdb()
 Base = declarative_base()
@@ -123,6 +124,12 @@ class BookChapter(Base):
 
     def __repr__(self):
         return f"BookChapter(id={self.id}, volume_id={self.volume_id} title='{self.title}', sequence={self.sequence}, book_sequence={self.book_sequence})"
+
+    def __len__(self):
+        soup = BeautifulSoup(self.body, 'html.parser')
+        length = soup.get_text()
+        return len(length)
+
 
 Book.volumes = relationship("BookVolume", back_populates="book")
 BookVolume.book = relationship('Book', back_populates='volumes')
