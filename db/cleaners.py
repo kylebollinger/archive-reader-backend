@@ -170,3 +170,48 @@ def bulk_update_book_import_data_web_urls():
             update_book_import_data_web_url(book.id)
 
     session.close()
+
+
+def update_book_vol_import_data_web_url(volume_id):
+    """ We migrated to a new S3 bucket and now need to update the CDN url for all book volumes
+    """
+
+    session = create_new_session()
+    try:
+        volume = session.query(BookVolume).filter_by(id=volume_id).first()
+        old_cdn = "https://d3he7l62xzkeip.cloudfront.net/"
+        new_cdn = "https://d2pypdkesc2vjp.cloudfront.net/"
+
+        if volume is not None and old_cdn in volume.import_data["book_url"]:
+            """ TODO Figure out this commit glitch
+            [summary] I can update volume.data no problem, but I cannot update volume.import_data. This function is ugly and inefficient, but it works.
+            """
+
+            volume.data = volume.import_data
+            new_import_data = volume.import_data
+            key = volume.import_data["book_url"].split(old_cdn)[-1]
+            new_import_data["book_url"] = f"{new_cdn}{key}"
+            session.add(volume)
+            session.commit()
+            volume.import_data = new_import_data
+            session.add(volume)
+            session.commit()
+            print(f"[SUCCESS] ===> [{volume.id}] Volume Updated")
+        else:
+            print(f"[INFO] ===> [{volume.id}] No update needed for book_url")
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] ===> An error occurred: {e}")
+    finally:
+        session.close()
+
+def bulk_update_book_vol_import_data_web_urls():
+    session = create_new_session()
+    volumes = session.query(Book).all()
+
+    if volumes is not None:
+        for volume in volumes:
+            update_book_vol_import_data_web_url(volume.id)
+
+    session.close()
