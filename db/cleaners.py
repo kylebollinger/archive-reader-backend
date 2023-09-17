@@ -2,12 +2,14 @@
 
     Use this file to perform direct db operations to clean data post scraping
 """
-import os, sys, re
+import os, sys, re, json
 from bs4 import BeautifulSoup
 print(f"path:\n{sys.path}")
 
 from db.models import Book, BookVolume, BookChapter, create_new_session
 from scraper.processors import clean_center_tags
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.exc import SQLAlchemyError
 
 
 """ Clears the chapter.body of all headers and footers """
@@ -121,5 +123,50 @@ def clip_book_chapter_titles(book_id):
                 if chapters is not None:
                     for chapter in chapters:
                         clip_chapter_title_lengths(chapter.id)
+
+    session.close()
+
+
+def update_book_import_data_web_url(book_id):
+    """ We migrated to a new S3 bucket and now need to update the CDN url for all books
+    """
+
+    session = create_new_session()
+    try:
+        book = session.query(Book).filter_by(id=book_id).first()
+        old_cdn = "https://d3he7l62xzkeip.cloudfront.net/"
+        new_cdn = "https://d2pypdkesc2vjp.cloudfront.net/"
+
+        if book is not None and old_cdn in book.import_data["web_url"]:
+            """ TODO Figure out this commit glitch
+            [summary] I can update book.data no problem, but I cannot update book.import_data. This function is ugly and inefficient, but it works.
+            """
+
+            book.data = book.import_data
+            new_import_data = book.import_data
+            key = book.import_data["web_url"].split(old_cdn)[-1]
+            new_import_data["web_url"] = f"{new_cdn}{key}"
+            session.add(book)
+            session.commit()
+            book.import_data = new_import_data
+            session.add(book)
+            session.commit()
+            print(f"[SUCCESS] ===> [{book.id}] Book Updated")
+        else:
+            print(f"[INFO] ===> [{book.id}] No update needed for web_url")
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] ===> An error occurred: {e}")
+    finally:
+        session.close()
+
+def bulk_update_book_import_data_web_urls():
+    session = create_new_session()
+    books = session.query(Book).all()
+
+    if books is not None:
+        for book in books:
+            update_book_import_data_web_url(book.id)
 
     session.close()

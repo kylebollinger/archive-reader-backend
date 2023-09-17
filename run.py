@@ -6,7 +6,8 @@ from db.cleaners import (
     update_book_sequence,
     bulk_update_book_sequences,
     clean_trailing_periods_from_title,
-    clip_book_chapter_titles
+    clip_book_chapter_titles,
+    bulk_update_book_import_data_web_urls,
 )
 
 """
@@ -30,4 +31,7 @@ from db.cleaners import (
 
     Example 6: Clip book chapter titles for a given book
     ===> clip_book_chapter_titles(book_id)
+
+    Example 7: Update CDN urls in book.import_data for all books
+    ===> bulk_update_book_import_data_web_urls()
 """
