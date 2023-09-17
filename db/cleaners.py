@@ -208,7 +208,7 @@ def update_book_vol_import_data_web_url(volume_id):
 
 def bulk_update_book_vol_import_data_web_urls():
     session = create_new_session()
-    volumes = session.query(Book).all()
+    volumes = session.query(BookVolume).all()
 
     if volumes is not None:
         for volume in volumes:
