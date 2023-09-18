@@ -259,3 +259,42 @@ def bulk_update_book_chap_import_data_web_urls():
             update_book_chap_import_data_web_url(chapter.id)
 
     session.close()
+
+
+def update_chapter_body_asset_urls(chapter_id):
+    """ We migrated to a new S3 bucket and now need to update the CDN url for all book chapters
+    """
+
+    session = create_new_session()
+    try:
+        chapter = session.query(BookChapter).filter_by(id=chapter_id).first()
+        old_cdn = "https://d3he7l62xzkeip.cloudfront.net/"
+        new_cdn = "https://d2pypdkesc2vjp.cloudfront.net/"
+
+
+        if chapter is not None and old_cdn in chapter.body:
+
+            # Replace old CDN references with new CDN in the chapter.body string
+            updated_body = chapter.body.replace(old_cdn, new_cdn)
+            chapter.body = updated_body
+            session.add(chapter)
+            session.commit()
+            print(f"[SUCCESS] ===> [{chapter.id}] Chapter Updated")
+        else:
+            print(f"[INFO] ===> [{chapter.id}] No update needed for chapter.body")
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] ===> An error occurred: {e}")
+    finally:
+        session.close()
+
+def bulk_update_chapter_body_asset_urls():
+    session = create_new_session()
+    chapters = session.query(BookChapter).all()
+
+    if chapters is not None:
+        for chapter in chapters:
+            update_chapter_body_asset_urls(chapter.id)
+
+    session.close()
