@@ -215,3 +215,47 @@ def bulk_update_book_vol_import_data_web_urls():
             update_book_vol_import_data_web_url(volume.id)
 
     session.close()
+
+def update_book_chap_import_data_web_url(chapter_id):
+    """ We migrated to a new S3 bucket and now need to update the CDN url for all book chapters
+    """
+
+    session = create_new_session()
+    try:
+        chapter = session.query(BookChapter).filter_by(id=chapter_id).first()
+        old_cdn = "https://d3he7l62xzkeip.cloudfront.net/"
+        new_cdn = "https://d2pypdkesc2vjp.cloudfront.net/"
+
+        if chapter is not None and old_cdn in chapter.import_data["chap_url"]:
+            """ TODO Figure out this commit glitch
+            [summary] I can update chapter.data no problem, but I cannot update chapter.import_data. This function is ugly and inefficient, but it works.
+            """
+
+            chapter.data = chapter.import_data
+            new_import_data = chapter.import_data
+            key = chapter.import_data["chap_url"].split(old_cdn)[-1]
+            new_import_data["chap_url"] = f"{new_cdn}{key}"
+            session.add(chapter)
+            session.commit()
+            chapter.import_data = new_import_data
+            session.add(chapter)
+            session.commit()
+            print(f"[SUCCESS] ===> [{chapter.id}] Chapter Updated")
+        else:
+            print(f"[INFO] ===> [{chapter.id}] No update needed for chap_url")
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] ===> An error occurred: {e}")
+    finally:
+        session.close()
+
+def bulk_update_book_chap_import_data_web_urls():
+    session = create_new_session()
+    chapters = session.query(BookChapter).all()
+
+    if chapters is not None:
+        for chapter in chapters:
+            update_book_chap_import_data_web_url(chapter.id)
+
+    session.close()
