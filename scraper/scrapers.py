@@ -2,15 +2,20 @@ import os, time, re, requests
 from bs4 import BeautifulSoup
 from db.models import Book, BookVolume, BookChapter, create_new_session
 
-from scraper.utils import getHTMLdocument, generate_slug_id, remove_byte_encoding
-from scraper.processors import create_base_volume, post_process_body, clean_center_tags
+from scraper.processors import (
+    create_base_volume,
+    post_process_body,
+    clean_center_tags
+)
 
-from core.helpers import (
+from scraper.utils import (
     OUTPUT_DIR,
     register_base_dirs,
     save_file,
     scrub_filename,
-    clean_filename
+    clean_filename,
+    getHTMLdocument,
+    remove_byte_encoding
 )
 
 
