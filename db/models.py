@@ -6,6 +6,8 @@ from datetime import datetime
 import requests, os
 
 from bs4 import BeautifulSoup
+from dotenv import load_dotenv
+
 from sqlalchemy import (
     create_engine,
     Column, Integer, String,
@@ -13,6 +15,7 @@ from sqlalchemy import (
     ForeignKey
 )
 
+load_dotenv()
 Base = declarative_base()
 
 
@@ -113,7 +116,15 @@ BookVolume.book = relationship('Book', back_populates='volumes')
 
 
 def create_new_session():
-    engine = create_engine('postgresql+psycopg2://xero:xeropoint@localhost/xeropoint')
+    driver = os.environ.get('DB_DRIVER', 'postgresql+psycopg2')
+    username = os.environ.get('DB_USERNAME', 'xero')
+    password = os.environ.get('DB_PASSWORD', 'xeropoint')
+    host = os.environ.get('DB_HOST', 'localhost')
+    port = os.environ.get('DB_PORT', '5432')
+    database = os.environ.get('DB_DATABASE', 'xeropoint')
+
+    db_config = f"{driver}://{username}:{password}@{host}:{port}/{database}"
+    engine = create_engine(db_config)
 
     Base.metadata.create_all(engine)
 
