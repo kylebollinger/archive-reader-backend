@@ -4,7 +4,6 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 import requests, os
-import pymysql
 
 from bs4 import BeautifulSoup
 from sqlalchemy import (
