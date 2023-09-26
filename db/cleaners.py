@@ -298,3 +298,51 @@ def bulk_update_chapter_body_asset_urls():
             update_chapter_body_asset_urls(chapter.id)
 
     session.close()
+
+
+def update_book_state(book_id):
+    """ Update the state of a book to 'complete' if all chapters have been scraped for each volume of a give book and all conditions are met.
+    """
+
+    session = create_new_session()
+    try:
+        book = session.query(Book).filter_by(id=book_id).first()
+
+        print(f"book state: {book.state}")
+
+        if all(len(volume.chapters) > 0 for volume in book.volumes):
+            for volume in book.volumes:
+                for chapter in volume.chapters:
+                    if len(chapter) == 0:
+                        book.state = "incomplete"
+                        session.add(book)
+                        session.commit()
+                        print(f"[INFO] ===> [{chapter.id}] Chapter has no length")
+                        return
+                    elif book.state != "completed":
+                        book.state = "complete"
+                        session.add(book)
+                        session.commit()
+                        print(f"[INFO] ===> [{book.id}] Book state set to 'complete'")
+                        return
+
+        else:
+            print(f"[INFO] ===> [{book.id}] No update needed for book.state")
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] ===> An error occurred: {e}")
+    finally:
+        session.close()
+
+
+def bulk_update_book_state():
+    session = create_new_session()
+    books = session.query(Book).all()
+
+    if books is not None:
+        for book in books:
+            update_book_state(book.id)
+
+    session.close()
+
