@@ -11,7 +11,7 @@ from db.cleaners import (
     bulk_update_book_vol_import_data_web_urls,
     bulk_update_book_chap_import_data_web_urls,
     bulk_update_chapter_body_asset_urls,
-    bulk_update_book_state,
+    bulk_update_book_state,bulk_update_chapter_body_imgs,
 )
 from db.exports import export_book_cat_csv
 
@@ -54,6 +54,9 @@ from db.exports import export_book_cat_csv
 
     Example 11: Update book.state ('incomplete' |'completed') for all books
     ===> bulk_update_book_state()
+
+    Example 12: Update <img> src attr to point to CDN in chapter.body for all chapters
+    ===> bulk_update_chapter_body_imgs()
 """
 
 

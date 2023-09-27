@@ -306,9 +306,7 @@ def update_book_state(book_id):
     session = create_new_session()
     try:
         book = session.query(Book).filter_by(id=book_id).first()
-
         print(f"current book state: {book.state}")
-
 
         if len(book.volumes) > 0:
             for volume in book.volumes:
@@ -357,5 +355,51 @@ def bulk_update_book_state():
     if books is not None:
         for book in books:
             update_book_state(book.id)
+
+    session.close()
+
+
+
+def update_chapter_body_imgs(chapter_id):
+    """ Search through chapter content for img tags and update the src attribute to point to the CDN instead of original source
+    """
+
+    session = create_new_session()
+    try:
+        chapter = session.query(BookChapter).filter_by(id=chapter_id).first()
+        print(f"[INFO] Working on chapter: {chapter.id}")
+        if len(chapter.body) > 0:
+            body = chapter.body
+            tags = re.findall(r'<img[^>]* src="([^"]*)"[^>]*>', body)
+            url_key = chapter.import_data["chap_url"].rsplit('/', 1)[0] if chapter.import_data else None
+
+            if len(tags) > 0 and url_key is not None:
+                for tag in tags:
+                    if tag.startswith(url_key):
+                        return
+                    url_path = f"{url_key}/{tag}"
+                    body = body.replace(tag, url_path)
+
+                chapter.body = body
+                session.add(chapter)
+                session.commit()
+                print(f"[SUCCESS] ===> [{chapter.id}] Chapter Updated")
+        else:
+            print(f"[INFO] ===> [{chapter.id}] No update needed for chapter.body")
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] ===> An error occurred: {e}")
+    finally:
+        session.close()
+
+
+def bulk_update_chapter_body_imgs():
+    session = create_new_session()
+    chapters = session.query(BookChapter).all()
+
+    if chapters is not None:
+        for chapter in chapters:
+            update_chapter_body_imgs(chapter.id)
 
     session.close()
