@@ -12,6 +12,7 @@ from db.cleaners import (
     bulk_update_book_chap_import_data_web_urls,
     bulk_update_chapter_body_asset_urls,
     bulk_update_book_state,bulk_update_chapter_body_imgs,
+    bulk_update_chapter_body_hrefs,
 )
 from db.exports import export_book_cat_csv
 
@@ -57,6 +58,10 @@ from db.exports import export_book_cat_csv
 
     Example 12: Update <img> src attr to point to CDN in chapter.body for all chapters
     ===> bulk_update_chapter_body_imgs()
+
+    Example 12: Update <href> to point CDN in chapter.body for <img> tags within all chapters
+    ===> bulk_update_chapter_body_hrefs()
+
 """
 
 

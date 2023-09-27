@@ -406,3 +406,48 @@ def bulk_update_chapter_body_imgs():
             update_chapter_body_imgs(chapter.id)
 
     session.close()
+
+
+def update_chapter_body_hrefs(chapter_id):
+    """ Search through chapter content for img tags and update the src attribute to point to the CDN instead of original source
+    """
+
+    session = create_new_session()
+    try:
+        chapter = session.query(BookChapter).filter_by(id=chapter_id).first()
+        print(f"[INFO] Working on chapter: {chapter.id}")
+        if len(chapter.body) > 0:
+            body = chapter.body
+            tags = re.findall(r'<a[^>]* href="([^"]*)"[^>]*>', body)
+
+            url_key = chapter.import_data["chap_url"].rsplit('/', 1)[0] if chapter.import_data else None
+
+            if len(tags) > 0 and url_key is not None:
+                for tag in tags:
+                    if tag.startswith('img/'):
+                        url_path = f"{url_key}/{tag}"
+                        body = body.replace(tag, url_path)
+
+                chapter.body = body
+                session.add(chapter)
+                session.commit()
+                print(f"[SUCCESS] ===> [{chapter.id}] Chapter Updated")
+        else:
+            print(f"[INFO] ===> [{chapter.id}] No update needed for chapter.body")
+
+    except Exception as e:
+        session.rollback()
+        print(f"[ERROR] ===> An error occurred: {e}")
+    finally:
+        session.close()
+
+
+def bulk_update_chapter_body_hrefs():
+    session = create_new_session()
+    chapters = session.query(BookChapter).all()
+
+    if chapters is not None:
+        for chapter in chapters:
+            update_chapter_body_hrefs(chapter.id)
+
+    session.close()
