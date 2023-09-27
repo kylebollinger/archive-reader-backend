@@ -307,10 +307,17 @@ def update_book_state(book_id):
     try:
         book = session.query(Book).filter_by(id=book_id).first()
 
-        print(f"book state: {book.state}")
+        print(f"current book state: {book.state}")
 
-        if all(len(volume.chapters) > 0 for volume in book.volumes):
+
+        if len(book.volumes) > 0:
             for volume in book.volumes:
+                if len(volume.chapters) == 0 and book.state != "incomplete":
+                    book.state = "incomplete"
+                    session.add(book)
+                    session.commit()
+                    print(f"[INFO] ===> [{volume.id}] Volume has no chapters")
+                    return
                 for chapter in volume.chapters:
                     if len(chapter) == 0:
                         book.state = "incomplete"
@@ -318,12 +325,19 @@ def update_book_state(book_id):
                         session.commit()
                         print(f"[INFO] ===> [{chapter.id}] Chapter has no length")
                         return
-                    elif book.state != "completed":
+                    elif len(chapter) > 0 and book.state != "completed":
                         book.state = "complete"
                         session.add(book)
                         session.commit()
                         print(f"[INFO] ===> [{book.id}] Book state set to 'complete'")
                         return
+
+        elif len(book.volumes) == 0 and book.state != "incomplete":
+            book.state = "incomplete"
+            session.add(book)
+            session.commit()
+            print(f"[INFO] ===> [{book.id}] Book has no volumes")
+            return
 
         else:
             print(f"[INFO] ===> [{book.id}] No update needed for book.state")
@@ -332,6 +346,7 @@ def update_book_state(book_id):
         session.rollback()
         print(f"[ERROR] ===> An error occurred: {e}")
     finally:
+        print(f"updated book state: {book.state}")
         session.close()
 
 
