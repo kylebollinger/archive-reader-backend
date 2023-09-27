@@ -7,12 +7,10 @@ from bs4 import BeautifulSoup
 
 from db.models import Book, BookVolume, BookChapter, create_new_session
 from scraper.processors import clean_center_tags
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
 
 
-""" Clears the chapter.body of all headers and footers """
 def process_body_center_tags(chapter_id):
+    """ Clears the chapter.body of all headers and footers """
     session = create_new_session()
     chapter = session.query(BookChapter).filter_by(id=chapter_id).first()
 
@@ -39,8 +37,8 @@ def bulk_process_body_center_tags():
     session.close()
 
 
-""" Loop through and update book sequence for a given book """
 def update_book_sequence(book_id):
+    """ Loop through and update book sequence for a given book """
     unprocessed = []
     session = create_new_session()
     book = session.query(Book).filter_by(id=book_id).first()
@@ -63,6 +61,7 @@ def update_book_sequence(book_id):
                 else:
                     print(f"[ERROR] ===> [{volume.id}] Volume has no chapters")
                     unprocessed.append(volume.id)
+
 
 def bulk_update_book_sequences():
     session = create_new_session()
@@ -160,6 +159,7 @@ def update_book_import_data_web_url(book_id):
     finally:
         session.close()
 
+
 def bulk_update_book_import_data_web_urls():
     session = create_new_session()
     books = session.query(Book).all()
@@ -205,6 +205,7 @@ def update_book_vol_import_data_web_url(volume_id):
     finally:
         session.close()
 
+
 def bulk_update_book_vol_import_data_web_urls():
     session = create_new_session()
     volumes = session.query(BookVolume).all()
@@ -214,6 +215,7 @@ def bulk_update_book_vol_import_data_web_urls():
             update_book_vol_import_data_web_url(volume.id)
 
     session.close()
+
 
 def update_book_chap_import_data_web_url(chapter_id):
     """ We migrated to a new S3 bucket and now need to update the CDN url for all book chapters
@@ -248,6 +250,7 @@ def update_book_chap_import_data_web_url(chapter_id):
         print(f"[ERROR] ===> An error occurred: {e}")
     finally:
         session.close()
+
 
 def bulk_update_book_chap_import_data_web_urls():
     session = create_new_session()
@@ -287,6 +290,7 @@ def update_chapter_body_asset_urls(chapter_id):
         print(f"[ERROR] ===> An error occurred: {e}")
     finally:
         session.close()
+
 
 def bulk_update_chapter_body_asset_urls():
     session = create_new_session()
@@ -357,7 +361,6 @@ def bulk_update_book_state():
             update_book_state(book.id)
 
     session.close()
-
 
 
 def update_chapter_body_imgs(chapter_id):
