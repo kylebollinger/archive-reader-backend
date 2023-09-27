@@ -13,8 +13,12 @@ from db.cleaners import (
     bulk_update_chapter_body_asset_urls,
     bulk_update_book_state,
 )
+from db.exports import export_book_cat_csv
 
 """
+    DB Cleaner Examples
+
+
     Example 1: Scrape a single book
     ===> scrape_book(38)
 
@@ -50,4 +54,13 @@ from db.cleaners import (
 
     Example 11: Update book.state ('incomplete' |'completed') for all books
     ===> bulk_update_book_state()
+"""
+
+
+"""
+    DB Export Examples
+
+
+    Example 11: Export book category with book homepage url to CSV
+    ===> export_book_cat_csv()
 """

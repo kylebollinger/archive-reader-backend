@@ -4,7 +4,6 @@
 """
 import os, sys, re, json
 from bs4 import BeautifulSoup
-print(f"path:\n{sys.path}")
 
 from db.models import Book, BookVolume, BookChapter, create_new_session
 from scraper.processors import clean_center_tags
@@ -345,4 +344,3 @@ def bulk_update_book_state():
             update_book_state(book.id)
 
     session.close()
-
