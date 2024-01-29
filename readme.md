@@ -33,7 +33,7 @@
 ## 📍 Overview
 
 
-With a USB drive of nearly 80,000 individual HTML pages of ancient text chapters, I decided to build an app that organizes the entire library. For more information about this project check out the [full writeup](https://kylebollinger.dev/projects/archive-texts) on my protfolio site.
+With a USB drive of nearly 120,000 individual HTML pages of ancient text chapters, I decided to build an app that organizes the entire library. For more information about this project check out the [full writeup](https://kylebollinger.dev/projects/archive-texts) on my protfolio site.
 
 This is how the backend will be setup. The database for the reader app is simple but accounts for the variance in all the books.
 
